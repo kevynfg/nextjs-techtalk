@@ -4,21 +4,19 @@ import Image from 'next/image'
 import { useRouter } from 'next/router';
 import { useState, useEffect } from 'react';
 
-export default function Details() {
-    const [pokemon, setPokemon] = useState(null)
-    const {query: name} = useRouter()
-    console.log('query', name.name)
+export async function getServerSideProps(context) {
+    context.res.setHeader('Cache-Control', 's-maxage=10', 'stale-while-revalidate')
+    // console.log('context', context)
+    const response = await fetch(`https://pokeapi.co/api/v2/pokemon/${context.params.name}`)
+    const pokemonDetail = await response.json();
+    return {
+        props: {
+            pokemon: pokemonDetail
+        }
+    }
+}
 
-    useEffect(() => {
-        async function getDetails() {
-            const response = await fetch(`https://pokeapi.co/api/v2/pokemon/${name.name}`)
-            const pokemonDetail = await response.json();
-            setPokemon(pokemonDetail)
-        }
-        if (name.name) {
-            getDetails();
-        }
-    },[name.name])
+export default function Details({pokemon}) {
 
     if (!pokemon) return <div>Loading...</div>
 
